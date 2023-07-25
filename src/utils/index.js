@@ -10,3 +10,11 @@ export const getDayOfTheYear = () => {
   const day = Math.floor(diff / oneDay);
   return day;
 };
+
+const getYear = () => {
+  return new Date().getFullYear();
+};
+
+export const getDayKey = () => {
+  return `day-${getDayOfTheYear()}-${getYear()}`;
+};

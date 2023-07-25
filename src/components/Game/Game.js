@@ -6,19 +6,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Keyboard from "../Keyboard";
 
-import { copyArray, getDayOfTheYear } from "../../utils";
+import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
 
 import words from "../../words";
 import { CLEAR, ENTER, colors, colorsToEmoji } from "../../constants";
 
 import styles from "./Game.styles";
 
+const GAME_KEY = "@game";
 const NUMBER_OF_TRIES = 6;
 const WON = "won",
   LOST = "lost",
   PLAYING = "playing";
 
 const dayOfTheYear = getDayOfTheYear();
+const dayKey = getDayKey();
 
 const Game = () => {
   const word = words[dayOfTheYear];
@@ -49,7 +51,7 @@ const Game = () => {
   }, []);
 
   const persistState = async () => {
-    const data = {
+    const dataForToday = {
       rows,
       currentRow,
       currentColumn,
@@ -57,21 +59,29 @@ const Game = () => {
     };
 
     try {
-      const dataString = JSON.stringify(data);
-      await AsyncStorage.setItem("@game", dataString);
+      let existingStateString = await AsyncStorage.getItem(GAME_KEY);
+      const existingState = existingStateString
+        ? JSON.parse(existingStateString)
+        : {};
+
+      existingState[dayKey] = dataForToday;
+
+      const dataString = JSON.stringify(existingState);
+      await AsyncStorage.setItem(GAME_KEY, dataString);
     } catch (e) {
       console.log("Failed to write data to async storage", e);
     }
   };
 
   const readState = async () => {
-    const dataString = await AsyncStorage.getItem("@game");
+    const dataString = await AsyncStorage.getItem(GAME_KEY);
     try {
       const data = JSON.parse(dataString);
-      setRows(data.rows);
-      setCurrentRow(data.currentRow);
-      setCurrentColumn(data.currentColumn);
-      setGameState(data.gameState);
+      const day = data[dayKey];
+      setRows(day.rows);
+      setCurrentRow(day.currentRow);
+      setCurrentColumn(day.currentColumn);
+      setGameState(day.gameState);
     } catch (e) {
       console.log("Couldn't parse the state");
     }
