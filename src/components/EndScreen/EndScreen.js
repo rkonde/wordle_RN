@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../constants";
+import { Pressable, StyleSheet, Text, View, Alert } from "react-native";
+import { colors, colorsToEmoji } from "../../constants";
 import { useEffect, useState } from "react";
+import * as Clipboard from "expo-clipboard";
 
 const Number = ({ number, label }) => (
   <View style={{ alignItems: "center", margin: 10 }}>
@@ -42,8 +43,7 @@ const GuessDistribution = () => (
   </>
 );
 
-const EndScreen = ({ won = false }) => {
-  const share = () => {};
+const EndScreen = ({ won = false, rows, getCellBackgroundColor }) => {
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
 
   useEffect(() => {
@@ -73,6 +73,22 @@ const EndScreen = ({ won = false }) => {
     }:${seconds > 9 ? seconds : "0" + seconds}`);
   };
 
+  const share = async () => {
+    const textMap = rows
+      .map((row, i) =>
+        row
+          .map((cell, j) => colorsToEmoji[getCellBackgroundColor(i, j)])
+          .join("")
+      )
+      .filter((row) => row)
+      .join("\n");
+
+    const textToShare = `Wordle\n${textMap}`;
+
+    await Clipboard.setStringAsync(textToShare);
+    Alert.alert("Copied successfully", "Share your score on your social media");
+  };
+
   return (
     <View style={{ alignItems: "center", width: "100%" }}>
       <Text style={styles.title}>
@@ -80,7 +96,7 @@ const EndScreen = ({ won = false }) => {
       </Text>
       <Text style={styles.subTitle}>STATISTICS</Text>
       <View style={{ flexDirection: "row", marginBottom: 20 }}>
-        <Number number={2} label={"Player"} />
+        <Number number={2} label={"Played"} />
         <Number number={2} label={"Win %"} />
         <Number number={2} label={"Current streak"} />
         <Number number={2} label={"Max streak"} />

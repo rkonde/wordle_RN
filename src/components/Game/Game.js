@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Text, View, ScrollView, Alert, ActivityIndicator } from "react-native";
-import * as Clipboard from "expo-clipboard";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -9,7 +8,7 @@ import EndScreen from "../EndScreen/EndScreen";
 
 import words from "../../words";
 import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
-import { CLEAR, ENTER, colors, colorsToEmoji } from "../../constants";
+import { CLEAR, ENTER, colors } from "../../constants";
 
 import styles from "./Game.styles";
 
@@ -105,22 +104,6 @@ const Game = () => {
     return !checkIfWon() && currentRow === rows.length;
   };
 
-  const shareScore = async () => {
-    const textMap = rows
-      .map((row, i) =>
-        row
-          .map((cell, j) => colorsToEmoji[getCellBackgroundColor(i, j)])
-          .join("")
-      )
-      .filter((row) => row)
-      .join("\n");
-
-    const textToShare = `Wordle\n${textMap}`;
-
-    await Clipboard.setStringAsync(textToShare);
-    Alert.alert("Copied successfully", "Share your score on your social media");
-  };
-
   const onKeyPressed = (key) => {
     if (gameState !== PLAYING) {
       return;
@@ -185,7 +168,13 @@ const Game = () => {
   }
 
   if (gameState !== PLAYING) {
-    return <EndScreen won={gameState === WON} />;
+    return (
+      <EndScreen
+        won={gameState === WON}
+        rows={rows}
+        getCellBackgroundColor={getCellBackgroundColor}
+      />
+    );
   }
 
   return (
