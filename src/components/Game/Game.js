@@ -5,10 +5,10 @@ import * as Clipboard from "expo-clipboard";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Keyboard from "../Keyboard";
-
-import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
+import EndScreen from "../EndScreen/EndScreen";
 
 import words from "../../words";
+import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
 import { CLEAR, ENTER, colors, colorsToEmoji } from "../../constants";
 
 import styles from "./Game.styles";
@@ -90,12 +90,8 @@ const Game = () => {
 
   const checkGameState = () => {
     if (checkIfWon() && gameState !== WON) {
-      Alert.alert("Hurray", "You won!", [
-        { text: "Share", onPress: shareScore },
-      ]);
       setGameState(WON);
     } else if (checkIfLost() && gameState !== LOST) {
-      Alert.alert("Meh", "Try again tomorrow!");
       setGameState(LOST);
     }
   };
@@ -186,6 +182,10 @@ const Game = () => {
 
   if (!loaded) {
     return <ActivityIndicator />;
+  }
+
+  if (gameState !== PLAYING) {
+    return <EndScreen won={gameState === WON} />;
   }
 
   return (
