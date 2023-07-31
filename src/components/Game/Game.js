@@ -8,15 +8,18 @@ import EndScreen from "../EndScreen/EndScreen";
 
 import words from "../../words";
 import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
-import { CLEAR, ENTER, colors } from "../../constants";
+import {
+  CLEAR,
+  ENTER,
+  GAME_KEY,
+  NUMBER_OF_TRIES,
+  WON,
+  LOST,
+  PLAYING,
+  colors,
+} from "../../constants";
 
 import styles from "./Game.styles";
-
-const GAME_KEY = "@game";
-const NUMBER_OF_TRIES = 6;
-const WON = "won",
-  LOST = "lost",
-  PLAYING = "playing";
 
 const dayOfTheYear = getDayOfTheYear();
 const dayKey = getDayKey();

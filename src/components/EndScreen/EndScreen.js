@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, Text, View, Alert } from "react-native";
-import { colors, colorsToEmoji } from "../../constants";
 import { useEffect, useState } from "react";
 import * as Clipboard from "expo-clipboard";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import { GAME_KEY, WON, colors, colorsToEmoji } from "../../constants";
 
 const Number = ({ number, label }) => (
   <View style={{ alignItems: "center", margin: 10 }}>
@@ -45,6 +47,10 @@ const GuessDistribution = () => (
 
 const EndScreen = ({ won = false, rows, getCellBackgroundColor }) => {
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
+  const [played, setPlayed] = useState(0);
+  const [winRate, setWinRate] = useState(0);
+  const [currentStreak, setCurrentStreak] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
 
   useEffect(() => {
     const updateTime = () => {
@@ -62,6 +68,52 @@ const EndScreen = ({ won = false, rows, getCellBackgroundColor }) => {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    readState();
+  }, []);
+
+  const readState = async () => {
+    const dataString = await AsyncStorage.getItem(GAME_KEY);
+    let data;
+    try {
+      data = JSON.parse(dataString);
+    } catch (e) {
+      console.log("Couldn't parse the state");
+    }
+
+    const keys = Object.keys(data);
+    const values = Object.values(data);
+
+    setPlayed(keys.length);
+
+    const numberOfWins = values.filter((game) => game.gameState === WON).length;
+
+    setWinRate(Math.floor((100 * numberOfWins) / keys.length));
+
+    let currentStreak = 0;
+    let maxStreak = 0;
+    let previousDay = 0;
+    keys.forEach((key) => {
+      const currentDay = parseInt(key.split("-")[1]);
+      if (data[key].gameState === WON && currentStreak === 0) {
+        currentStreak += 1;
+      } else if (
+        data[key].gameState === WON &&
+        previousDay + 1 === currentDay
+      ) {
+        currentStreak += 1;
+      } else {
+        currentStreak = data[key].gameState === WON ? 1 : 0;
+      }
+      if (currentStreak > maxStreak) {
+        maxStreak = currentStreak;
+      }
+      previousDay = currentDay;
+    });
+    setCurrentStreak(currentStreak);
+    setMaxStreak(maxStreak);
+  };
 
   const formatSeconds = () => {
     const hours = Math.floor(secondsTillTomorrow / (60 * 60));
@@ -96,10 +148,10 @@ const EndScreen = ({ won = false, rows, getCellBackgroundColor }) => {
       </Text>
       <Text style={styles.subTitle}>STATISTICS</Text>
       <View style={{ flexDirection: "row", marginBottom: 20 }}>
-        <Number number={2} label={"Played"} />
-        <Number number={2} label={"Win %"} />
-        <Number number={2} label={"Current streak"} />
-        <Number number={2} label={"Max streak"} />
+        <Number number={played} label={"Played"} />
+        <Number number={winRate} label={"Win %"} />
+        <Number number={currentStreak} label={"Current streak"} />
+        <Number number={maxStreak} label={"Max streak"} />
       </View>
 
       <GuessDistribution />
